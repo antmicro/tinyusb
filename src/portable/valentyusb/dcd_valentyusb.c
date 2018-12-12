@@ -96,6 +96,7 @@ typedef struct {
   uint8_t (*get_response)(void);
   uint8_t (*pending_read)(void);
   void    (*pending_clear)(uint8_t);
+  uint8_t (*last_token)(void);
   // Input FIFO
   uint8_t (*d2h_empty)(void);
   void    (*d2h_push)(uint8_t);
@@ -114,6 +115,7 @@ ep_func_t ep_funcs[] = {
     .get_response  = &usb_ep_0_respond_read,
     .pending_read  = &usb_ep_0_ev_pending_read,
     .pending_clear = &usb_ep_0_ev_pending_write,
+    .last_token    = &usb_ep_0_last_tok_read,
 
     // Input FIFO
 #ifdef CSR_USB_EP_0_IBUF_HEAD_ADDR
@@ -144,6 +146,7 @@ ep_func_t ep_funcs[] = {
     .get_response  = &usb_ep_1_respond_read,
     .pending_read  = &usb_ep_1_ev_pending_read,
     .pending_clear = &usb_ep_1_ev_pending_write,
+    .last_token    = &usb_ep_1_last_tok_read,
 
     // Input FIFO
 #ifdef CSR_USB_EP_1_IBUF_HEAD_ADDR
@@ -174,6 +177,7 @@ ep_func_t ep_funcs[] = {
     .get_response  = &usb_ep_2_respond_read,
     .pending_read  = &usb_ep_2_ev_pending_read,
     .pending_clear = &usb_ep_2_ev_pending_write,
+    .last_token    = &usb_ep_2_last_tok_read,
 
     // Input FIFO
 #ifdef CSR_USB_EP_2_IBUF_HEAD_ADDR
@@ -197,13 +201,14 @@ ep_func_t ep_funcs[] = {
   },
 #endif
 #ifdef CSR_USB_EP_3_EV_STATUS_ADDR
-  // Endpoint 2 -- Out (host to device) endpoint
+  // Endpoint 3 -- Out (host to device) endpoint
   {
     // Control functions
     .set_response  = &usb_ep_3_respond_write,
     .get_response  = &usb_ep_3_respond_read,
     .pending_read  = &usb_ep_3_ev_pending_read,
     .pending_clear = &usb_ep_3_ev_pending_write,
+    .last_token    = &usb_ep_3_last_tok_read,
 
     // Input FIFO
 #ifdef CSR_USB_EP_3_IBUF_HEAD_ADDR
@@ -339,7 +344,7 @@ void dcd_poll(uint8_t rhport)
     }
 
     // FIXME: last_tok is global?
-    enum TOK last_tok = usb_last_tok_read();
+    enum TOK last_tok = epf.last_token();
     uint8_t* buffer = NULL;
     uint8_t  len    = 255;
 
