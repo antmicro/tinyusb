@@ -434,8 +434,12 @@ static inline uint8_t descriptor_len(uint8_t const p_desc[])
 // Header of string descriptors with len + string type
 #define TUD_DESC_STR_HEADER(_slen)  ( (uint16_t) ( (TUSB_DESC_STRING ) | TUD_DESC_STRLEN(_slen) << 8) )
 
+#define WCHAR(x) (x << 8),
+
+#define TUD_DESC_LANG( x )     (const uint16_t[]) { TUD_DESC_STR_HEADER(1), x }
+
 // Convert comma-separated string to descriptor unicode format
-#define TUD_DESC_STRCONV( ... )     (const uint16_t[]) { TUD_DESC_STR_HEADER(VA_ARGS_NUM_(__VA_ARGS__)), __VA_ARGS__ }
+#define TUD_DESC_STRCONV( ... )     (const uint16_t[]) { TUD_DESC_STR_HEADER(VA_ARGS_NUM_(__VA_ARGS__)), FOR_EACH(WCHAR, __VA_ARGS__) }
 
 #ifdef __cplusplus
  }

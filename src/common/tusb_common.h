@@ -102,7 +102,7 @@
  * - _GET_NTH_ARG() takes args >= N (64) but only expand to Nth one (64th)
  * - _RSEQ_N() is reverse sequential to N to add padding to have
  * Nth position is the same as the number of arguments
- * - ##__VA_ARGS__ is used to deal with 0 paramerter (swallows comma)
+ * - ##__VA_ARGS__ is used to deal with 0 parameter (swallows comma)
  *------------------------------------------------------------------*/
 #ifndef VA_ARGS_NUM_
 
@@ -124,6 +124,81 @@
          29,28,27,26,25,24,23,22,21,20, \
          19,18,17,16,15,14,13,12,11,10, \
          9,8,7,6,5,4,3,2,1,0
+#endif
+
+#ifndef FOR_EACH
+
+// Make a FOREACH macro
+#define _FE_00(WHAT, ...)
+#define _FE_01(WHAT, X, ...) WHAT(X)
+#define _FE_02(WHAT, X, ...) WHAT(X) _FE_01(WHAT, __VA_ARGS__)
+#define _FE_03(WHAT, X, ...) WHAT(X) _FE_02(WHAT, __VA_ARGS__)
+#define _FE_04(WHAT, X, ...) WHAT(X) _FE_03(WHAT, __VA_ARGS__)
+#define _FE_05(WHAT, X, ...) WHAT(X) _FE_04(WHAT, __VA_ARGS__)
+#define _FE_06(WHAT, X, ...) WHAT(X) _FE_05(WHAT, __VA_ARGS__)
+#define _FE_07(WHAT, X, ...) WHAT(X) _FE_06(WHAT, __VA_ARGS__)
+#define _FE_08(WHAT, X, ...) WHAT(X) _FE_07(WHAT, __VA_ARGS__)
+#define _FE_09(WHAT, X, ...) WHAT(X) _FE_08(WHAT, __VA_ARGS__)
+#define _FE_11(WHAT, X, ...) WHAT(X) _FE_09(WHAT, __VA_ARGS__)
+#define _FE_12(WHAT, X, ...) WHAT(X) _FE_11(WHAT, __VA_ARGS__)
+#define _FE_13(WHAT, X, ...) WHAT(X) _FE_12(WHAT, __VA_ARGS__)
+#define _FE_14(WHAT, X, ...) WHAT(X) _FE_13(WHAT, __VA_ARGS__)
+#define _FE_15(WHAT, X, ...) WHAT(X) _FE_14(WHAT, __VA_ARGS__)
+#define _FE_16(WHAT, X, ...) WHAT(X) _FE_15(WHAT, __VA_ARGS__)
+#define _FE_17(WHAT, X, ...) WHAT(X) _FE_16(WHAT, __VA_ARGS__)
+#define _FE_18(WHAT, X, ...) WHAT(X) _FE_17(WHAT, __VA_ARGS__)
+#define _FE_19(WHAT, X, ...) WHAT(X) _FE_18(WHAT, __VA_ARGS__)
+#define _FE_21(WHAT, X, ...) WHAT(X) _FE_19(WHAT, __VA_ARGS__)
+#define _FE_22(WHAT, X, ...) WHAT(X) _FE_21(WHAT, __VA_ARGS__)
+#define _FE_23(WHAT, X, ...) WHAT(X) _FE_22(WHAT, __VA_ARGS__)
+#define _FE_24(WHAT, X, ...) WHAT(X) _FE_23(WHAT, __VA_ARGS__)
+#define _FE_25(WHAT, X, ...) WHAT(X) _FE_24(WHAT, __VA_ARGS__)
+#define _FE_26(WHAT, X, ...) WHAT(X) _FE_25(WHAT, __VA_ARGS__)
+#define _FE_27(WHAT, X, ...) WHAT(X) _FE_26(WHAT, __VA_ARGS__)
+#define _FE_28(WHAT, X, ...) WHAT(X) _FE_27(WHAT, __VA_ARGS__)
+#define _FE_29(WHAT, X, ...) WHAT(X) _FE_28(WHAT, __VA_ARGS__)
+#define _FE_31(WHAT, X, ...) WHAT(X) _FE_29(WHAT, __VA_ARGS__)
+#define _FE_32(WHAT, X, ...) WHAT(X) _FE_31(WHAT, __VA_ARGS__)
+#define _FE_33(WHAT, X, ...) WHAT(X) _FE_32(WHAT, __VA_ARGS__)
+#define _FE_34(WHAT, X, ...) WHAT(X) _FE_33(WHAT, __VA_ARGS__)
+#define _FE_35(WHAT, X, ...) WHAT(X) _FE_34(WHAT, __VA_ARGS__)
+#define _FE_36(WHAT, X, ...) WHAT(X) _FE_35(WHAT, __VA_ARGS__)
+#define _FE_37(WHAT, X, ...) WHAT(X) _FE_36(WHAT, __VA_ARGS__)
+#define _FE_38(WHAT, X, ...) WHAT(X) _FE_37(WHAT, __VA_ARGS__)
+#define _FE_39(WHAT, X, ...) WHAT(X) _FE_38(WHAT, __VA_ARGS__)
+#define _FE_41(WHAT, X, ...) WHAT(X) _FE_39(WHAT, __VA_ARGS__)
+#define _FE_42(WHAT, X, ...) WHAT(X) _FE_41(WHAT, __VA_ARGS__)
+#define _FE_43(WHAT, X, ...) WHAT(X) _FE_42(WHAT, __VA_ARGS__)
+#define _FE_44(WHAT, X, ...) WHAT(X) _FE_43(WHAT, __VA_ARGS__)
+#define _FE_45(WHAT, X, ...) WHAT(X) _FE_44(WHAT, __VA_ARGS__)
+#define _FE_46(WHAT, X, ...) WHAT(X) _FE_45(WHAT, __VA_ARGS__)
+#define _FE_47(WHAT, X, ...) WHAT(X) _FE_46(WHAT, __VA_ARGS__)
+#define _FE_48(WHAT, X, ...) WHAT(X) _FE_47(WHAT, __VA_ARGS__)
+#define _FE_49(WHAT, X, ...) WHAT(X) _FE_48(WHAT, __VA_ARGS__)
+#define _FE_51(WHAT, X, ...) WHAT(X) _FE_49(WHAT, __VA_ARGS__)
+#define _FE_52(WHAT, X, ...) WHAT(X) _FE_51(WHAT, __VA_ARGS__)
+#define _FE_53(WHAT, X, ...) WHAT(X) _FE_52(WHAT, __VA_ARGS__)
+#define _FE_54(WHAT, X, ...) WHAT(X) _FE_53(WHAT, __VA_ARGS__)
+#define _FE_55(WHAT, X, ...) WHAT(X) _FE_54(WHAT, __VA_ARGS__)
+#define _FE_56(WHAT, X, ...) WHAT(X) _FE_55(WHAT, __VA_ARGS__)
+#define _FE_57(WHAT, X, ...) WHAT(X) _FE_56(WHAT, __VA_ARGS__)
+#define _FE_58(WHAT, X, ...) WHAT(X) _FE_57(WHAT, __VA_ARGS__)
+#define _FE_59(WHAT, X, ...) WHAT(X) _FE_58(WHAT, __VA_ARGS__)
+#define _FE_61(WHAT, X, ...) WHAT(X) _FE_59(WHAT, __VA_ARGS__)
+#define _FE_62(WHAT, X, ...) WHAT(X) _FE_61(WHAT, __VA_ARGS__)
+
+#define _FE_RSEQ_N() \
+         _FE_62,_FE_61,_FE_60,_FE_                      \
+         _FE_59,_FE_58,_FE_57,_FE_56,_FE_55,_FE_54,_FE_53,_FE_52,_FE_51,_FE_50,_FE_ \
+         _FE_49,_FE_48,_FE_47,_FE_46,_FE_45,_FE_44,_FE_43,_FE_42,_FE_41,_FE_40,_FE_ \
+         _FE_39,_FE_38,_FE_37,_FE_36,_FE_35,_FE_34,_FE_33,_FE_32,_FE_31,_FE_30,_FE_ \
+         _FE_29,_FE_28,_FE_27,_FE_26,_FE_25,_FE_24,_FE_23,_FE_22,_FE_21,_FE_20,_FE_ \
+         _FE_19,_FE_18,_FE_17,_FE_16,_FE_15,_FE_14,_FE_13,_FE_12,_FE_11,_FE_10,_FE_ \
+         _FE_09,_FE_08,_FE_07,_FE_06,_FE_05,_FE_04,_FE_03,_FE_02,_FE_01,_FE_00
+
+#define FOR_EACH(x, ...) \
+    NARG_(_0, ##__VA_ARGS__,_FE_RSEQ_N())(x, ##__VA_ARGS__)
+
 #endif
 
 //--------------------------------------------------------------------+
