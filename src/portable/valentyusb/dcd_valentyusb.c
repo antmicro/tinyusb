@@ -281,6 +281,7 @@ bool dcd_init (uint8_t rhport)
   }
 
   // Allow the USB to start
+  usb_pullup_out_write(0);
   usb_pullup_out_write(1);
 
   printf("init\n");
@@ -340,7 +341,11 @@ void dcd_poll(uint8_t rhport)
   for (unsigned ep = 0; ep < (sizeof(ep_funcs)/sizeof(ep_funcs[0])); ep++) {
     ep_func_t epf = ep_funcs[ep];
     if (!epf.pending_read()) {
-      continue;
+      if ((epf.h2d_empty != NULL) && (!(epf.h2d_empty()))) {
+        printf(" -- ERR pending but not empty.\r\n");
+      } else {
+        continue;
+      }
     }
 
     // FIXME: last_tok is global?
@@ -398,6 +403,9 @@ void dcd_poll(uint8_t rhport)
       // Copy the data out of the FIFO
       t = 0;
       while (!(epf.h2d_empty())) {
+        if (t >= len) {
+          break;
+        }
         uint8_t byte = epf.h2d_read(); // Read the data
         epf.h2d_pop(0);                // Push the FIFO forward by one
         printf("%x ", byte);
@@ -405,6 +413,9 @@ void dcd_poll(uint8_t rhport)
           buffer[t] = byte;
         }
         t++;
+      }
+      if(!(epf.h2d_empty())) {
+        printf("(data remains) ");
       }
 
       break;
@@ -537,7 +548,6 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
 
 bool dcd_edpt_busy (uint8_t rhport, uint8_t ep_addr)
 {
-  puts("busy\n");
   (void) rhport;
 
   uint8_t const epnum = edpt_number(ep_addr);

@@ -28,6 +28,7 @@ LDFLAGS += \
 	-L$(BUILDINC_DIRECTORY)/../libbase \
 	-L$(BUILDINC_DIRECTORY)/../libcompiler_rt \
 	$(BUILDINC_DIRECTORY)/../libbase/crt0-$(CPU)-xip.o \
+	$(BUILDINC_DIRECTORY)/../bios/boot-helper-$(CPU).o \
 	$(BUILDINC_DIRECTORY)/../libbase/libbase-nofloat.a \
 	$(BUILDINC_DIRECTORY)/../libcompiler_rt/libcompiler_rt.a \
 	-lbase-nofloat \

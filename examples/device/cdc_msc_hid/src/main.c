@@ -36,9 +36,16 @@
 */
 /**************************************************************************/
 
-#include <stdlib.h>
+#include <console.h>
+#include <irq.h>
 #include <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <system.h>
+#include <uart.h>
+
+#include <generated/csr.h>
 
 #include "bsp/board.h"
 #include "tusb.h"
@@ -52,6 +59,32 @@ void led_blinking_task(void);
 extern void virtual_com_task(void);
 extern void usb_hid_task(void);
 
+#ifndef CONFIG_CPU_RESET_ADDR
+#define CONFIG_CPU_RESET_ADDR 0
+#warning "CPU reset address was not defined! Using 0."
+#endif
+
+extern void boot_helper(unsigned int r1, unsigned int r2, unsigned int r3, unsigned int addr);
+
+void __attribute__((noreturn)) boot(unsigned int r1, unsigned int r2, unsigned int r3, unsigned int addr)
+{
+	printf("Booting program at 0x%x.\r\n", addr);
+	usb_pullup_out_write(0);
+	uart_sync();
+	irq_setmask(0);
+	irq_setie(0);
+	flush_cpu_icache();
+	boot_helper(r1, r2, r3, addr);
+	while(1);
+}
+
+void reboot(void)
+{
+	printf("Reboot!\r\n");
+	boot(0, 0, 0, CONFIG_CPU_RESET_ADDR);
+}
+
+
 /*------------- MAIN -------------*/
 int main(void)
 {
@@ -62,6 +95,17 @@ int main(void)
 
   while (1)
   {
+
+    if(readchar_nonblock()) {
+      char c = readchar();
+      putchar(c);
+      switch(c) {
+      case 'r':
+         reboot();
+	 break;
+      }
+    }
+
     tusb_task();
 
     led_blinking_task();
