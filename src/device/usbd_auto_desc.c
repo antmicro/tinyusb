@@ -428,7 +428,7 @@ desc_auto_cfg_t const _desc_auto_config_struct =
           .bEndpointAddress = EP_CDC_OUT,
           .bmAttributes     = { .xfer = TUSB_XFER_BULK },
           .wMaxPacketSize   = { .size = CFG_TUD_CDC_EPSIZE },
-          .bInterval        = 0
+          .bInterval        = 1
       },
 
       .ep_in =
@@ -438,7 +438,7 @@ desc_auto_cfg_t const _desc_auto_config_struct =
           .bEndpointAddress = EP_CDC_IN,
           .bmAttributes     = { .xfer = TUSB_XFER_BULK },
           .wMaxPacketSize   = { .size = CFG_TUD_CDC_EPSIZE },
-          .bInterval        = 0
+          .bInterval        = 1
       },
     },
 #endif // cdc

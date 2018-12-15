@@ -118,6 +118,7 @@ typedef struct {
 } ep_func_t;
 
 ep_func_t ep_funcs[] = {
+
   // Endpoint 0 -- Out
   {
     // Control functions
@@ -134,6 +135,7 @@ ep_func_t ep_funcs[] = {
       .h2d_pop       = &usb_ep_0_out_obuf_head_write,
     },
   },
+
   // Endpoint 0 -- In
   {
     // Control functions
@@ -149,9 +151,9 @@ ep_func_t ep_funcs[] = {
       .d2h_push      = &usb_ep_0_in_ibuf_head_write,
     },
   },
-  // Endpoint 1
-#ifdef CSR_USB_EP_1_OUT_EV_STATUS_ADDR
+
   // Endpoint 1 -- Out
+#ifdef CSR_USB_EP_1_OUT_EV_STATUS_ADDR
   {
     // Control functions
     .set_response  = &usb_ep_1_out_respond_write,
@@ -168,10 +170,25 @@ ep_func_t ep_funcs[] = {
     },
   },
 #else
-  {},
+  {
+    // Control functions
+    .set_response  = NULL,
+    .get_response  = NULL,
+    .pending_read  = NULL,
+    .pending_clear = NULL,
+    .last_token    = NULL,
+
+    .out = {
+      // Output FIFO
+      .h2d_empty     = NULL,
+      .h2d_read      = NULL,
+      .h2d_pop       = NULL,
+    },
+  },
 #endif
-#ifdef CSR_USB_EP_1_IN_EV_STATUS_ADDR
+
   // Endpoint 1 -- In
+#ifdef CSR_USB_EP_1_IN_EV_STATUS_ADDR
   {
     // Control functions
     .set_response  = &usb_ep_1_in_respond_write,
@@ -187,10 +204,24 @@ ep_func_t ep_funcs[] = {
     },
   },
 #else
-  {},
+  {
+    // Control functions
+    .set_response  = NULL,
+    .get_response  = NULL,
+    .pending_read  = NULL,
+    .pending_clear = NULL,
+    .last_token    = NULL,
+
+    .out = {
+      // Input FIFO
+      .d2h_empty     = NULL,
+      .d2h_push      = NULL,
+    },
+  },
 #endif
-#ifdef CSR_USB_EP_2_OUT_EV_STATUS_ADDR
+
   // Endpoint 2 -- Out
+#ifdef CSR_USB_EP_2_OUT_EV_STATUS_ADDR
   {
     // Control functions
     .set_response  = &usb_ep_2_out_respond_write,
@@ -207,10 +238,25 @@ ep_func_t ep_funcs[] = {
     },
   },
 #else
-  {},
+  {
+    // Control functions
+    .set_response  = NULL,
+    .get_response  = NULL,
+    .pending_read  = NULL,
+    .pending_clear = NULL,
+    .last_token    = NULL,
+
+    .out = {
+      // Output FIFO
+      .h2d_empty     = NULL,
+      .h2d_read      = NULL,
+      .h2d_pop       = NULL,
+    },
+  },
 #endif
-#ifdef CSR_USB_EP_2_IN_EV_STATUS_ADDR
+
   // Endpoint 2 -- In
+#ifdef CSR_USB_EP_2_IN_EV_STATUS_ADDR
   {
     // Control functions
     .set_response  = &usb_ep_2_in_respond_write,
@@ -226,7 +272,20 @@ ep_func_t ep_funcs[] = {
     },
   },
 #else
-  {},
+  {
+    // Control functions
+    .set_response  = NULL,
+    .get_response  = NULL,
+    .pending_read  = NULL,
+    .pending_clear = NULL,
+    .last_token    = NULL,
+
+    .out = {
+      // Input FIFO
+      .d2h_empty     = NULL,
+      .d2h_push      = NULL,
+    },
+  },
 #endif
 };
 
@@ -336,7 +395,6 @@ bool dcd_edpt_open (uint8_t rhport, tusb_desc_endpoint_t const * desc_edpt)
   const uint8_t epdir = edpt_dir(desc_edpt->bEndpointAddress);
   const uint8_t epbuf = ENDPOINT_BUF(epnum, epdir);
 
-
   printf("ep_%u_%s edpt_open\r\n", epnum, (epdir == TUSB_DIR_OUT) ? "out" : "in ");
   if (ep_funcs[epbuf].pending_clear == NULL) {
     printf("--ERR Invalid endpoint!");
@@ -349,47 +407,17 @@ bool dcd_edpt_open (uint8_t rhport, tusb_desc_endpoint_t const * desc_edpt)
   return true;
 }
 
-void dcd_out_poll(const uint8_t epbuf)
+int16_t dcd_out_transfer(const uint8_t epbuf, uint8_t* buffer, const uint16_t len)
 {
   const uint8_t epnum = ENDPOINT_NUM(epbuf);
   const ep_func_t epf = ep_funcs[epbuf];
-  if (!epf.pending_read()) {
-    if ((epf.out.h2d_empty())) {
-      return;
-    } else {
-      printf("-- ERR not pending but not empty.\r\n");
-    }
-  }
-
-  uint8_t last_tok = epf.last_token();
-  uint8_t* buffer = NULL;
-  uint8_t  len    = 255;
-  switch(last_tok) {
-  case TOK_SETUP:
-    buffer = &(_setup_packet[0]);
-    len = sizeof(_setup_packet);
-    printf("-");
-    break;
-  case TOK_OUT:
-    buffer = ep_buffers[epbuf].buffer;
-    len    = ep_buffers[epbuf].len;
-    break;
-  default:
-    printf(" -- ERR tok");
-    goto fail;
-  }
-
-  // Clear the pointers
-  ep_buffers[epbuf].buffer = NULL;
-  ep_buffers[epbuf].len = 255;
 
   printf("ep_%u_out ", epnum);
-  printf_tok(last_tok);
   printf("w:%u ", len);
 
   if (len == 255) {
     printf(" -- ERR unexpected");
-    goto fail;
+    return -1;
   }
 
   // Copy the data out of the FIFO
@@ -406,11 +434,8 @@ void dcd_out_poll(const uint8_t epbuf)
     }
     t++;
   }
-  printf("g:%u ", t);
 
-  if(!(epf.out.h2d_empty())) {
-    printf("(data remains) ");
-  }
+  printf("g:%u ", t);
 
   if (t < len) {
     printf("-- ERR short!");
@@ -418,27 +443,50 @@ void dcd_out_poll(const uint8_t epbuf)
   if (t > len) {
     printf("-- ERR long!");
   }
+  return t;
+}
 
-  epf.set_response(ENDPOINT_NAK);
-  epf.pending_clear(0xff);
-  printf("!\r\n");
-
-  switch(last_tok) {
-  case TOK_SETUP:
-    dcd_event_setup_received(0, buffer, false);
-    return;
-  case TOK_OUT:
-    dcd_event_xfer_complete(0, epnum, len, XFER_RESULT_SUCCESS, false);
-    return;
-  default:
-    // NOT_REACHED();
+void dcd_out_poll(const uint8_t epbuf)
+{
+  const uint8_t epnum = ENDPOINT_NUM(epbuf);
+  const ep_func_t epf = ep_funcs[epbuf];
+  if (!epf.pending_read()) {
     return;
   }
 
-fail:
-  epf.set_response(ENDPOINT_STA);
+  while (!epf.out.h2d_empty()) {
+    uint8_t* buffer = ep_buffers[epbuf].buffer;
+    uint8_t  len    = ep_buffers[epbuf].len;
+    // Clear the pointers
+    ep_buffers[epbuf].buffer = NULL;
+    ep_buffers[epbuf].len = 255;
+
+    uint8_t last_tok = epf.last_token();
+    if (len == 255) {
+      if (last_tok == TOK_SETUP) {
+        buffer = &(_setup_packet[0]);
+        len = sizeof(_setup_packet);
+        printf("-");
+      }
+    }
+    printf_tok(last_tok);
+
+    int16_t t = dcd_out_transfer(epbuf, buffer, len);
+    if (t == -1) {
+      printf(":-(\r\n");
+      continue;
+    }
+    printf("\r\n");
+
+    if (buffer != &(_setup_packet[0])) {
+      dcd_event_xfer_complete(0, epnum, t, XFER_RESULT_SUCCESS, false);
+    } else {
+      dcd_event_setup_received(0, buffer, false);
+    }
+  }
+
+  epf.set_response(ENDPOINT_NAK);
   epf.pending_clear(0xff);
-  printf(":-(\r\n");
 }
 
 void dcd_in_poll(uint8_t const epbuf)
@@ -449,13 +497,18 @@ void dcd_in_poll(uint8_t const epbuf)
     return;
   }
 
+  if (!epf.in.d2h_empty()) {
+    printf("in not empty\r\n!");
+    return;
+  }
+
   uint8_t  len = ep_buffers[epbuf].len;
   // Clear the pointers
   ep_buffers[epbuf].buffer = NULL;
   ep_buffers[epbuf].len = 255;
 
-  printf("ep_%u_in  ", epnum);
   printf_tok(epf.last_token());
+  printf("ep_%u_in  ", epnum);
   printf("w:%u ", len);
 
   if (len == 255) {
@@ -542,14 +595,26 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
     // FIXME: Check total_bytes...
 
     // Push the data into the outgoing FIFO
-    //epf.set_response(ENDPOINT_NAK);
     for(uint16_t i = 0; i < total_bytes; i++) {
+      printf("%x ", buffer[i]);
       epf.in.d2h_push(buffer[i]);
     }
+    if (total_bytes > 0) {
+      if(epf.in.d2h_empty()) {
+        printf("-ERR ep empty!?\r\n");
+        return false;
+      }
+    }
+    if (epf.pending_read()) {
+      printf("-ERR ep pending!?\r\n");
+      return false;
+    }
+
     ep_buffers[epbuf].buffer = NULL;
     ep_buffers[epbuf].len = total_bytes;
 
   } else {
+    printf("ERR - Unknown EP direction\r\n");
     return false;
   }
 
@@ -575,7 +640,7 @@ void dcd_edpt_set_response(uint8_t rhport, uint8_t ep_addr, enum ENDPOINT_RESPON
   const uint8_t epdir = edpt_dir(ep_addr);
   const uint8_t epbuf = ENDPOINT_BUF(epnum, epdir);
   ep_funcs[epbuf].set_response(e);
-  printf("stall %x\r\n", ep_addr);
+  printf("stall ep:%u d:%s %x\r\n", epnum, (epdir == TUSB_DIR_OUT) ? "o" : "i", e);
 }
 
 void dcd_edpt_stall (uint8_t rhport, uint8_t ep_addr)
@@ -593,10 +658,11 @@ bool dcd_edpt_busy (uint8_t rhport, uint8_t ep_addr)
 {
   (void) rhport;
 
-  const uint8_t epnum = edpt_number(ep_addr);
-  const uint8_t epdir = edpt_dir(ep_addr);
-  const uint8_t epbuf = ENDPOINT_BUF(epnum, epdir);
-  return (ep_buffers[epbuf].len != 255) || (ep_funcs[epbuf].pending_read());
+  //const uint8_t epnum = edpt_number(ep_addr);
+  //const uint8_t epdir = edpt_dir(ep_addr);
+  //const uint8_t epbuf = ENDPOINT_BUF(epnum, epdir);
+  //return (ep_buffers[epbuf].len != 255) || (ep_funcs[epbuf].pending_read());
+  return false;
 }
 
 /*------------------------------------------------------------------*/
