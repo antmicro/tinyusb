@@ -137,7 +137,11 @@ void virtual_com_task(void)
 
       // read and echo back
       uint32_t count = tud_cdc_read(buf, sizeof(buf));
-
+      printf("c:");
+      for (unsigned i = 0; i < count; i++) {
+        putchar(buf[i]);
+      }
+      printf("\r\n");
       tud_cdc_write(buf, count);
     }
 

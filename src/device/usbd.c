@@ -329,7 +329,7 @@ static bool process_control_request(uint8_t rhport, tusb_control_request_t const
 {
   usbd_control_set_complete_callback(NULL);
   printf("bmRequestType %x rcpt %x type %x dir %x\r\n", p_request->bmRequestType, p_request->bmRequestType_bit.recipient, p_request->bmRequestType_bit.type, p_request->bmRequestType_bit.direction);
- 
+
   if ( TUSB_REQ_RCPT_DEVICE == p_request->bmRequestType_bit.recipient &&
        TUSB_REQ_TYPE_STANDARD == p_request->bmRequestType_bit.type )
   {
@@ -617,6 +617,10 @@ void dcd_event_setup_received(uint8_t rhport, uint8_t const * setup, bool in_isr
 // helper to send transfer complete event
 void dcd_event_xfer_complete (uint8_t rhport, uint8_t ep_addr, uint32_t xferred_bytes, uint8_t result, bool in_isr)
 {
+  uint8_t const dir   = edpt_dir(ep_addr);
+  uint8_t const epnum = edpt_number(ep_addr);
+  printf("] ep:%u d:%s end xfer l:%u\r\n", epnum, (dir == TUSB_DIR_OUT) ? "o" : "i", xferred_bytes);
+
   dcd_event_t event = { .rhport = 0, .event_id = DCD_EVENT_XFER_COMPLETE };
 
   event.xfer_complete.ep_addr = ep_addr;
