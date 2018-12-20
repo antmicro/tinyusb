@@ -7,17 +7,12 @@ INCLUDE generated/regions.ld
 
 SECTIONS
 {
-	.fbi :
-	{
-		. = . + 8; /* Firmware Base Image format (len/crc) data comes first. */
-	} > user_flash
-
 	.text :
 	{
 		_ftext = .;
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 		_etext = .;
-	} > user_flash
+	} > rom
 
 	.rodata :
 	{
@@ -26,7 +21,7 @@ SECTIONS
 		*(.rodata .rodata.* .gnu.linkonce.r.*)
 		*(.rodata1)
 		_erodata = .;
-	} > user_flash
+	} > rom
 
 	.data : AT (ADDR(.rodata) + SIZEOF (.rodata))
 	{
@@ -34,6 +29,7 @@ SECTIONS
 		_fdata = .;
 		*(.data .data.* .gnu.linkonce.d.*)
 		*(.data1)
+		. = ALIGN(16);
 		_gp = ALIGN(16);
 		*(.sdata .sdata.* .gnu.linkonce.s.*)
 		_edata = ALIGN(16); /* Make sure _edata is >= _gp. */
