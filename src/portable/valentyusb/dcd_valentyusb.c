@@ -48,6 +48,12 @@
 
 #include "device/dcd.h"
 
+// #define printf(...) //_printf(__VA_ARGS__)
+// const unsigned char _ctype[] = {
+// 'x'
+// };
+// #include "printf.c"
+
 #define ENDPOINT_BUF(num, dir) \
   (num << 1 | (epdir == TUSB_DIR_OUT ? 0 : 1))
 
@@ -73,6 +79,7 @@ enum TOK {
 };
 
 void printf_tok(enum TOK tok) {
+  /*
     printf("tok ");
     switch(tok) {
     case TOK_OUT:
@@ -90,6 +97,7 @@ void printf_tok(enum TOK tok) {
     default:
       printf("%x ", tok);
     }
+    */
 }
 
 static uint8_t _setup_packet[8];
@@ -151,7 +159,7 @@ ep_func_t ep_funcs[] = {
       .d2h_push      = &usb_ep_0_in_ibuf_head_write,
     },
   },
-
+#if 0
   // Endpoint 1 -- Out
 #ifdef CSR_USB_EP_1_OUT_EV_STATUS_ADDR
   {
@@ -287,6 +295,7 @@ ep_func_t ep_funcs[] = {
     },
   },
 #endif
+#endif
 };
 
 struct {
@@ -411,6 +420,7 @@ int16_t dcd_out_transfer(const uint8_t epbuf, uint8_t* buffer, const uint16_t le
 {
   const uint8_t epnum = ENDPOINT_NUM(epbuf);
   const ep_func_t epf = ep_funcs[epbuf];
+  (void)epnum;
 
   printf("ep_%u_out ", epnum);
   printf("w:%u ", len);
@@ -436,13 +446,14 @@ int16_t dcd_out_transfer(const uint8_t epbuf, uint8_t* buffer, const uint16_t le
   }
 
   printf("g:%u ", t);
-
+/*
   if (t < len) {
     printf("-- ERR short!");
   }
   if (t > len) {
     printf("-- ERR long!");
   }
+  */
   return t;
 }
 
@@ -561,26 +572,26 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
 
   // Endpoint is in use?
   if (epf.pending_read()) {
-    printf("pending packet!\r\n");
+    printf("pp!\r\n");
     return false;
   }
   if (ep_buffers[epbuf].buffer != NULL) {
-    printf("ep.buffer != NULL (%p)\r\n", ep_buffers[epbuf].buffer);
+    // printf("ep.buffer != NULL (%p)\r\n", ep_buffers[epbuf].buffer);
     return false;
   }
   if (ep_buffers[epbuf].len != 255) {
-    printf("ep.len != 255 (%u)\r\n", ep_buffers[epbuf].len);
+    // printf("ep.len != 255 (%u)\r\n", ep_buffers[epbuf].len);
     return false;
   }
   if (epf.get_response() != ENDPOINT_NAK) {
-    printf("ep.state != NAK (%x)\r\n", epf.get_response());
+    // printf("ep.state != NAK (%x)\r\n", epf.get_response());
     return false;
   }
 
   // Out transfer
   if ( epdir == TUSB_DIR_OUT ) {
     if (!epf.out.h2d_empty()) {
-      printf("not empty\r\n");
+      printf("!empty\r\n");
       return false;
     }
     ep_buffers[epbuf].buffer = buffer;
@@ -589,7 +600,7 @@ bool dcd_edpt_xfer (uint8_t rhport, uint8_t ep_addr, uint8_t * buffer, uint16_t 
   // In tranfer
   } else if ( epdir == TUSB_DIR_IN ) {
     if (!epf.in.d2h_empty()) {
-      printf("not empty\r\n");
+      printf("!empty\r\n");
       return false;
     }
     // FIXME: Check total_bytes...
